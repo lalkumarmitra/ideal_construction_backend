@@ -121,6 +121,14 @@ class Transaction extends Model
               ->orWhereHas('unloadingVehicle', function ($q2) use ($keyword) {
                   $q2->where('number', 'like', '%' . $keyword . '%')
                      ->orWhere('type', 'like', '%' . $keyword . '%');
+              })
+              // Search in loading driver data.
+              ->orWhereHas('loadingDriver', function ($q2) use ($keyword) {
+                  $q2->where('name', 'like', '%' . $keyword . '%');
+              })
+              // Search in unloading driver data.
+              ->orWhereHas('unLoadingDriver', function ($q2) use ($keyword) {
+                  $q2->where('name', 'like', '%' . $keyword . '%');
               });
         });
     }

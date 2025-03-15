@@ -70,9 +70,11 @@ class UserController extends Controller
             }
         });
     }
-    public function read($page=1,$offset=10) {
-        return $this->tryCatchWrapper(function()use($page,$offset){
-            $users = User::with('role')->latest()->paginate($offset, ['*'], 'page', $page);
+    public function read($page=1,$offset=10,$byroleid=null) {
+        return $this->tryCatchWrapper(function()use($page,$offset,$byroleid){
+            $query = User::query();
+            if($byroleid)$query->where('role_id',$byroleid);
+            $users = $query->with('role')->latest()->paginate($offset, ['*'], 'page', $page);
             return [
                 'message'=>'Users Fetched Successfully',
                 'data'=>[

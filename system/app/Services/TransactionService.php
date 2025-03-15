@@ -47,7 +47,7 @@ class TransactionService
             'loading_rate' => ['min_loading_rate', 'max_loading_rate'],
             'unloading_rate' => ['min_unloading_rate', 'max_unloading_rate'],
         ];
-
+ 
         foreach ($filters as $column => $keys) {
             if (is_array($keys)) {
                 if ($min = $this->request->input($keys[0])) $this->query->where($column, '>=', $min);

@@ -174,7 +174,9 @@ class TransactionController extends Controller
                 );
             }
             (new TransactionService($request, $query))->applyFilters();
-            $transactions = $query->latest()->paginate($offset, ['*'], 'page', $page);
+            if($request->filled('SortField') && $request->filled('SortOrder')) $query->orderBy($request->input('SortField'), $request->input('SortOrder'));
+            else $query->latest();
+            $transactions = $query->paginate($offset, ['*'], 'page', $page);
             return [
                 'message' => 'Search results',
                 'data'=>[
@@ -189,7 +191,7 @@ class TransactionController extends Controller
     }
     public function export(TransactionExportRequest $request) {
         return $this->tryCatchWrapper(function()use($request){
-            $query = Transaction::with(['product', 'loadingPoint', 'unloadingPoint', 'loadingVehicle', 'unloadingVehicle']);
+            $query = Transaction::with(['product', 'loadingPoint', 'unloadingPoint', 'loadingVehicle', 'unloadingVehicle','loadingDriver','unLoadingDriver']);
             if ($loadingClientSize = $request->input('loading_client_size')) $query->filterByClientSize($loadingClientSize,'loading');
             if ($unLoadingClientSize = $request->input('unloading_client_size')) $query->filterByClientSize($unLoadingClientSize,'unloading');
 
@@ -209,7 +211,8 @@ class TransactionController extends Controller
                     $request->input('unloading_date_to')
                 );
             }
-            $query->latest();
+            if($request->filled('SortField') && $request->filled('SortOrder')) $query->orderBy($request->input('SortField'), $request->input('SortOrder'));
+            else $query->latest();
             $excelData = (new TransactionService($request, $query))->export();
             return [
                 'message' => 'Excel file generated successfully',

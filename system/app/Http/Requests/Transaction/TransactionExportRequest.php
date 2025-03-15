@@ -86,7 +86,12 @@ class TransactionExportRequest extends FormRequest
             ],
             // File format and name options
             'file_name' => 'nullable|string|max:100',
-            'file_format' => ['nullable', Rule::in(['xlsx', 'csv'])]
+            'file_format' => ['nullable', Rule::in(['xlsx', 'csv'])],
+            
+            //shorting configuration
+            'sort_field' => 'required_with:sort_order|in:id,loading_date,unloading_date,loading_quantity,unloading_quantity,transport_expense',
+            'sort_order' => 'required_with:sort_field|in:asc,desc',
+            
         ];
     }
 }

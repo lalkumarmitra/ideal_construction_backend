@@ -50,7 +50,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     // user management routes
     Route::post('/new-user', [UserController::class,'store']);
     Route::post('/update-user/{id}', [UserController::class,'update']);
-    Route::get('/users/{page?}/{offset?}', [UserController::class,'read']);
+    Route::get('/users/{page?}/{offset?}/{byroleid?}', [UserController::class,'read']);
     Route::get('/user-details/{id}', [UserController::class,'details']);
     Route::delete('/user/{id}', [UserController::class,'delete']);
     Route::get('/toggle-user-status/{id}',[UserController::class,'toggleStatus']);
