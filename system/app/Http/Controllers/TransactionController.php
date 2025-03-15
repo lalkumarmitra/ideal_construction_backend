@@ -174,7 +174,7 @@ class TransactionController extends Controller
                 );
             }
             (new TransactionService($request, $query))->applyFilters();
-            if($request->filled('SortField') && $request->filled('SortOrder')) $query->orderBy($request->input('SortField'), $request->input('SortOrder'));
+            if($request->filled('sort_field') && $request->filled('sort_order')) $query->orderBy($request->input('sort_field'), $request->input('sort_order'));
             else $query->latest();
             $transactions = $query->paginate($offset, ['*'], 'page', $page);
             return [
@@ -211,7 +211,7 @@ class TransactionController extends Controller
                     $request->input('unloading_date_to')
                 );
             }
-            if($request->filled('SortField') && $request->filled('SortOrder')) $query->orderBy($request->input('SortField'), $request->input('SortOrder'));
+            if($request->filled('sort_field') && $request->filled('sort_order')) $query->orderBy($request->input('sort_field'), $request->input('sort_order'));
             else $query->latest();
             $excelData = (new TransactionService($request, $query))->export();
             return [
