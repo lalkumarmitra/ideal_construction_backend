@@ -9,36 +9,47 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Carbon;
 
 class DashboardController extends Controller
 {
-    public function getAnalytics(Request $request){
+    public function getAnalytics(Request $request)
+    {
         return $this->tryCatchWrapper(function() use ($request) {
-            if(Auth::user()->role->type !== 'admin') throw new \Exception('Unauthorized Request', 403);
-            $request->validate([
+            // Check authorization
+            if (Auth::user()->role->type !== 'admin') {
+                throw new \Exception('Unauthorized Request', 403);
+            }
+            
+            // Validate request
+            $validated = $request->validate([
                 'from_date' => 'required|date',
                 'to_date' => 'required|date|after_or_equal:from_date',
             ]);
 
+            // Create base query
             $query = Transaction::query()
-                ->whereBetween('loading_date', [$request->from_date, $request->to_date]);
+                ->whereBetween('loading_date', [$validated['from_date'], $validated['to_date']]);
 
+            // Get all analytics data
             return [
                 'message' => 'Dashboard analytics fetched successfully',
                 'data' => [
-                    // New overall statistics
+                    // Overall statistics
                     'overall_stats' => $this->getOverallStats($query),
                     
-                    // Existing analytics
+                    // Top resources
                     'top_vehicles' => $this->getTopVehicles($query),
                     'top_drivers' => $this->getTopDrivers($query),
                     'products_by_quantity' => $this->getProductsByQuantity($query),
+                    
+                    // Client analytics
                     'loading_points_by_quantity' => $this->getLoadingPointsByQuantity($query),
                     'unloading_points_by_quantity' => $this->getUnloadingPointsByQuantity($query),
                     'loading_points_by_price' => $this->getLoadingPointsByPrice($query),
                     'unloading_points_by_price' => $this->getUnloadingPointsByPrice($query),
                     
-                    // Other analytics
+                    // Additional analytics
                     'summary' => $this->getSummaryStats($query),
                     'transaction_types' => $this->getTransactionTypeStats($query),
                     'daily_transactions' => $this->getDailyTransactionStats($query),
@@ -49,13 +60,18 @@ class DashboardController extends Controller
         });
     }
 
-    private function getTopVehicles($query){
-        return $query->select(
+    private function getTopVehicles($query)
+    {
+        // Clone the query to avoid modifying the original
+        $vehicleQuery = clone $query;
+        
+        return $vehicleQuery->select(
                 'loading_vehicle_id',
                 DB::raw('COUNT(*) as transaction_count'),
                 DB::raw('AVG(transport_expense) as avg_expense')
             )
             ->with('loadingVehicle:id,number,type')
+            ->whereNotNull('loading_vehicle_id')
             ->groupBy('loading_vehicle_id')
             ->orderByDesc('avg_expense')
             ->limit(5)
@@ -71,7 +87,10 @@ class DashboardController extends Controller
 
     private function getTopDrivers($query)
     {
-        return $query->select(
+        // Clone the query to avoid modifying the original
+        $driverQuery = clone $query;
+        
+        return $driverQuery->select(
                 'loading_driver_id',
                 DB::raw('COUNT(*) as transaction_count'),
                 DB::raw('SUM(transport_expense) as total_expense'),
@@ -80,7 +99,7 @@ class DashboardController extends Controller
             ->with('loadingDriver:id,name')
             ->whereNotNull('loading_driver_id')
             ->groupBy('loading_driver_id')
-            ->orderBy(DB::raw('AVG(transport_expense)'), 'desc')
+            ->orderByDesc('avg_expense')
             ->limit(5)
             ->get()
             ->map(function($item) {
@@ -95,7 +114,11 @@ class DashboardController extends Controller
 
     private function getProductsByQuantity($query)
     {
-        return $query->select(
+        // Clone the query to avoid modifying the original
+        $productQuery = clone $query;
+        
+        // Fix: Group by product_id
+        return $productQuery->select(
                 'product_id',
                 DB::raw('COUNT(*) as transaction_count'),
                 DB::raw('SUM(loading_quantity) as total_loading_quantity'),
@@ -103,9 +126,9 @@ class DashboardController extends Controller
                 DB::raw('AVG(transport_expense) as avg_expense')
             )
             ->with('product:id,name')
-            ->whereNotNull('loading_driver_id')
-            ->orderBy(DB::raw('AVG(transport_expense)'), 'desc')
-            ->orderByRaw('GREATEST(SUM(loading_quantity), SUM(unloading_quantity)) DESC')
+            ->whereNotNull('product_id')
+            ->groupBy('product_id')  // Fix: Only group by product_id
+            ->orderByDesc(DB::raw('GREATEST(SUM(loading_quantity), SUM(unloading_quantity))'))
             ->limit(5)
             ->get()
             ->map(function($item) {
@@ -119,13 +142,18 @@ class DashboardController extends Controller
             });
     }
 
-    private function getLoadingPointsByQuantity($query){
-        return $query->select(
+    private function getLoadingPointsByQuantity($query)
+    {
+        // Clone the query to avoid modifying the original
+        $loadingQuery = clone $query;
+        
+        return $loadingQuery->select(
                 'loading_point_id',
                 DB::raw('COUNT(*) as transaction_count'),
                 DB::raw('SUM(loading_quantity) as total_quantity')
             )
             ->with('loadingPoint:id,name')
+            ->whereNotNull('loading_point_id')
             ->groupBy('loading_point_id')
             ->orderByDesc('total_quantity')
             ->get()
@@ -138,13 +166,18 @@ class DashboardController extends Controller
             });
     }
 
-    private function getUnloadingPointsByQuantity($query){
-        return $query->select(
+    private function getUnloadingPointsByQuantity($query)
+    {
+        // Clone the query to avoid modifying the original
+        $unloadingQuery = clone $query;
+        
+        return $unloadingQuery->select(
                 'unloading_point_id',
                 DB::raw('COUNT(*) as transaction_count'),
                 DB::raw('SUM(unloading_quantity) as total_quantity')
             )
             ->with('unloadingPoint:id,name')
+            ->whereNotNull('unloading_point_id')
             ->groupBy('unloading_point_id')
             ->orderByDesc('total_quantity')
             ->get()
@@ -157,13 +190,18 @@ class DashboardController extends Controller
             });
     }
 
-    private function getLoadingPointsByPrice($query){
-        return $query->select(
+    private function getLoadingPointsByPrice($query)
+    {
+        // Clone the query to avoid modifying the original
+        $loadingPriceQuery = clone $query;
+        
+        return $loadingPriceQuery->select(
                 'loading_point_id',
                 DB::raw('COUNT(*) as transaction_count'),
                 DB::raw('SUM(loading_rate * loading_quantity) as total_price')
             )
             ->with('loadingPoint:id,name')
+            ->whereNotNull('loading_point_id')
             ->groupBy('loading_point_id')
             ->orderByDesc('total_price')
             ->get()
@@ -176,13 +214,18 @@ class DashboardController extends Controller
             });
     }
 
-    private function getUnloadingPointsByPrice($query){
-        return $query->select(
+    private function getUnloadingPointsByPrice($query)
+    {
+        // Clone the query to avoid modifying the original
+        $unloadingPriceQuery = clone $query;
+        
+        return $unloadingPriceQuery->select(
                 'unloading_point_id',
                 DB::raw('COUNT(*) as transaction_count'),
                 DB::raw('SUM(unloading_rate * unloading_quantity) as total_price')
             )
             ->with('unloadingPoint:id,name')
+            ->whereNotNull('unloading_point_id')
             ->groupBy('unloading_point_id')
             ->orderByDesc('total_price')
             ->get()
@@ -195,29 +238,49 @@ class DashboardController extends Controller
             });
     }
 
-    private function getSummaryStats($query){
+    private function getSummaryStats($query)
+    {
+        // Clone the query to avoid modifying the original
+        $summaryQuery = clone $query;
+        
         return [
-            'total_transactions' => $query->count(),
-            'total_transport_expense' => $query->sum('transport_expense'),
-            'average_transport_expense' => $query->avg('transport_expense'),
-            'total_loading_quantity' => $query->sum('loading_quantity'),
-            'total_unloading_quantity' => $query->sum('unloading_quantity'),
-            'total_loading_value' => $query->selectRaw('SUM(loading_rate * loading_quantity) as total')->value('total'),
-            'total_unloading_value' => $query->selectRaw('SUM(unloading_rate * unloading_quantity) as total')->value('total'),
+            'total_transactions' => $summaryQuery->count(),
+            'total_transport_expense' => $summaryQuery->sum('transport_expense'),
+            'average_transport_expense' => round($summaryQuery->avg('transport_expense'), 2),
+            'total_loading_quantity' => $summaryQuery->sum('loading_quantity'),
+            'total_unloading_quantity' => $summaryQuery->sum('unloading_quantity'),
+            'total_loading_value' => round($summaryQuery->selectRaw('SUM(loading_rate * loading_quantity) as total')->value('total'), 2),
+            'total_unloading_value' => round($summaryQuery->selectRaw('SUM(unloading_rate * unloading_quantity) as total')->value('total'), 2),
         ];
     }
 
-    private function getTransactionTypeStats($query){
-        return $query->select('txn_type')
+    private function getTransactionTypeStats($query)
+    {
+        // Clone the query to avoid modifying the original
+        $typeQuery = clone $query;
+        
+        return $typeQuery->select('txn_type')
             ->selectRaw('COUNT(*) as count')
             ->selectRaw('SUM(transport_expense) as total_expense')
             ->selectRaw('AVG(transport_expense) as avg_expense')
             ->groupBy('txn_type')
-            ->get();
+            ->get()
+            ->map(function($item) {
+                return [
+                    'type' => $item->txn_type,
+                    'count' => $item->count,
+                    'total_expense' => round($item->total_expense, 2),
+                    'avg_expense' => round($item->avg_expense, 2)
+                ];
+            });
     }
 
-    private function getDailyTransactionStats($query){
-        return $query->select(
+    private function getDailyTransactionStats($query)
+    {
+        // Clone the query to avoid modifying the original
+        $dailyQuery = clone $query;
+        
+        return $dailyQuery->select(
                 DB::raw('DATE(loading_date) as date'),
                 DB::raw('COUNT(*) as transaction_count'),
                 DB::raw('SUM(transport_expense) as total_expense'),
@@ -226,11 +289,24 @@ class DashboardController extends Controller
             )
             ->groupBy(DB::raw('DATE(loading_date)'))
             ->orderBy('date')
-            ->get();
+            ->get()
+            ->map(function($item) {
+                return [
+                    'date' => $item->date,
+                    'transaction_count' => $item->transaction_count,
+                    'total_expense' => round($item->total_expense, 2),
+                    'total_loading' => $item->total_loading,
+                    'total_unloading' => $item->total_unloading
+                ];
+            });
     }
 
-    private function getQuantityDiscrepancies($query){
-        return $query->select(
+    private function getQuantityDiscrepancies($query)
+    {
+        // Clone the query to avoid modifying the original
+        $discrepancyQuery = clone $query;
+        
+        return $discrepancyQuery->select(
                 'id',
                 'product_id',
                 'loading_quantity',
@@ -245,14 +321,27 @@ class DashboardController extends Controller
     }
 
     private function getInactiveResources($query){
-        $activeVehicleIds = $query->pluck('loading_vehicle_id')->merge(
-            $query->pluck('unloading_vehicle_id')
-        )->unique();
+        // Clone the query to avoid modifying the original
+        $resourceQuery = clone $query;
         
-        $activeDriverIds = $query->pluck('loading_driver_id')->merge(
-            $query->pluck('unloading_driver_id')
-        )->unique();
+        // Get date range
+        $dateRange = [
+            $resourceQuery->getQuery()->wheres[0]['values'][0],
+            $resourceQuery->getQuery()->wheres[0]['values'][1]
+        ];
+        
+        // Get active resources
+        $activeVehicleIds = $resourceQuery->pluck('loading_vehicle_id')
+            ->merge($resourceQuery->pluck('unloading_vehicle_id'))
+            ->filter()
+            ->unique();
+        
+        $activeDriverIds = $resourceQuery->pluck('loading_driver_id')
+            ->merge($resourceQuery->pluck('unloading_driver_id'))
+            ->filter()
+            ->unique();
 
+        // Get inactive resources
         return [
             'inactive_vehicles' => Vehicle::whereNotIn('id', $activeVehicleIds)
                 ->select('id', 'number', 'type')
@@ -267,6 +356,12 @@ class DashboardController extends Controller
     }
 
     private function getOverallStats($query){
+        // Get date range
+        $dateRange = [
+            $query->getQuery()->wheres[0]['values'][0], 
+            $query->getQuery()->wheres[0]['values'][1]
+        ];
+
         // Get total counts
         $totalStats = [
             'total_users' => User::count(),
@@ -278,29 +373,32 @@ class DashboardController extends Controller
 
         // Get increments for the selected period
         $incrementStats = [
-            'new_users' => User::whereBetween('created_at', [$query->getQuery()->wheres[0]['values'][0], $query->getQuery()->wheres[0]['values'][1]])->count(),
-            'new_vehicles' => Vehicle::whereBetween('created_at', [$query->getQuery()->wheres[0]['values'][0], $query->getQuery()->wheres[0]['values'][1]])->count(),
-            'new_loading_clients' => Client::whereHas('loadingTransactions', function($q) use ($query) {
-                $q->whereBetween('loading_date', [$query->getQuery()->wheres[0]['values'][0], $query->getQuery()->wheres[0]['values'][1]]);
-            })->where('created_at', '>=', $query->getQuery()->wheres[0]['values'][0])->count(),
-            'new_unloading_clients' => Client::whereHas('unloadingTransactions', function($q) use ($query) {
-                $q->whereBetween('loading_date', [$query->getQuery()->wheres[0]['values'][0], $query->getQuery()->wheres[0]['values'][1]]);
-            })->where('created_at', '>=', $query->getQuery()->wheres[0]['values'][0])->count(),
-            'new_transactions' => $query->count(),
+            'new_users' => User::whereBetween('created_at', $dateRange)->count(),
+            'new_vehicles' => Vehicle::whereBetween('created_at', $dateRange)->count(),
+            'new_loading_clients' => Client::whereBetween('created_at', $dateRange)
+                ->whereHas('loadingTransactions')->count(),
+            'new_unloading_clients' => Client::whereBetween('created_at', $dateRange)
+                ->whereHas('unloadingTransactions')->count(),
+            'new_transactions' => Transaction::whereBetween('loading_date', $dateRange)->count(),
         ];
-
+    
         // Calculate growth percentages
         $growthStats = [
-            'users_growth' => $totalStats['total_users'] > 0 ? 
-                round(($incrementStats['new_users'] / $totalStats['total_users']) * 100, 2) : 0,
-            'vehicles_growth' => $totalStats['total_vehicles'] > 0 ? 
-                round(($incrementStats['new_vehicles'] / $totalStats['total_vehicles']) * 100, 2) : 0,
-            'loading_clients_growth' => $totalStats['total_loading_clients'] > 0 ? 
-                round(($incrementStats['new_loading_clients'] / $totalStats['total_loading_clients']) * 100, 2) : 0,
-            'unloading_clients_growth' => $totalStats['total_unloading_clients'] > 0 ? 
-                round(($incrementStats['new_unloading_clients'] / $totalStats['total_unloading_clients']) * 100, 2) : 0,
-            'transactions_growth' => $totalStats['total_transactions'] > 0 ? 
-                round(($incrementStats['new_transactions'] / $totalStats['total_transactions']) * 100, 2) : 0,
+            'users_growth' => $totalStats['total_users'] > 0 
+                ? round(($incrementStats['new_users'] / $totalStats['total_users']) * 100, 2) 
+                : 0,
+            'vehicles_growth' => $totalStats['total_vehicles'] > 0 
+                ? round(($incrementStats['new_vehicles'] / $totalStats['total_vehicles']) * 100, 2) 
+                : 0,
+            'loading_clients_growth' => $totalStats['total_loading_clients'] > 0 
+                ? round(($incrementStats['new_loading_clients'] / $totalStats['total_loading_clients']) * 100, 2) 
+                : 0,
+            'unloading_clients_growth' => $totalStats['total_unloading_clients'] > 0 
+                ? round(($incrementStats['new_unloading_clients'] / $totalStats['total_unloading_clients']) * 100, 2) 
+                : 0,
+            'transactions_growth' => $totalStats['total_transactions'] > 0 
+                ? round(($incrementStats['new_transactions'] / $totalStats['total_transactions']) * 100, 2) 
+                : 0,
         ];
 
         return [
