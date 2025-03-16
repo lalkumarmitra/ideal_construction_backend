@@ -80,7 +80,7 @@ class DashboardController extends Controller
             ->with('loadingDriver:id,name')
             ->whereNotNull('loading_driver_id')
             ->groupBy('loading_driver_id')
-            ->orderByDesc(DB::raw('AVG(transport_expense)'))
+            ->orderBy(DB::raw('AVG(transport_expense)'), 'desc')
             ->limit(5)
             ->get()
             ->map(function($item) {
@@ -93,7 +93,8 @@ class DashboardController extends Controller
             });
     }
 
-    private function getProductsByQuantity($query){
+    private function getProductsByQuantity($query)
+    {
         return $query->select(
                 'product_id',
                 DB::raw('COUNT(*) as transaction_count'),
