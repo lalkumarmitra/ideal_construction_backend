@@ -99,18 +99,22 @@ class DashboardController extends Controller
                 'product_id',
                 DB::raw('COUNT(*) as transaction_count'),
                 DB::raw('SUM(loading_quantity) as total_loading_quantity'),
-                DB::raw('SUM(unloading_quantity) as total_unloading_quantity')
+                DB::raw('SUM(unloading_quantity) as total_unloading_quantity'),
+                DB::raw('AVG(transport_expense) as avg_expense')
             )
             ->with('product:id,name')
-            ->groupBy('product_id')
+            ->whereNotNull('loading_driver_id')
+            ->orderBy(DB::raw('AVG(transport_expense)'), 'desc')
             ->orderByRaw('GREATEST(SUM(loading_quantity), SUM(unloading_quantity)) DESC')
+            ->limit(5)
             ->get()
             ->map(function($item) {
                 return [
                     'product' => $item->product,
                     'transaction_count' => $item->transaction_count,
                     'total_loading_quantity' => $item->total_loading_quantity,
-                    'total_unloading_quantity' => $item->total_unloading_quantity
+                    'total_unloading_quantity' => $item->total_unloading_quantity,
+                    'average_expense' => round($item->avg_expense, 2)
                 ];
             });
     }
