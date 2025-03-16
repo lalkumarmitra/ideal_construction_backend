@@ -12,16 +12,19 @@ use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
-    public function getAnalytics(Request $request){
+    public function getAnalytics(Request $request)
+    {
         return $this->tryCatchWrapper(function() use ($request) {
             if(Auth::user()->role->type !== 'admin') throw new \Exception('Unauthorized Request', 403);
-            $request->validate([
+            
+            // Fix validation by using query parameters
+            $validated = $request->validate([
                 'from_date' => 'required|date',
                 'to_date' => 'required|date|after_or_equal:from_date',
             ]);
 
             $query = Transaction::query()
-                ->whereBetween('loading_date', [$request->from_date, $request->to_date]);
+                ->whereBetween('loading_date', [$validated['from_date'], $validated['to_date']]);
 
             return [
                 'message' => 'Dashboard analytics fetched successfully',
@@ -258,7 +261,14 @@ class DashboardController extends Controller
         ];
     }
 
-    private function getOverallStats($query){
+    private function getOverallStats($query)
+    {
+        // Get the date range from the query
+        $dateRange = [
+            $query->getQuery()->wheres[0]['values'][0],
+            $query->getQuery()->wheres[0]['values'][1]
+        ];
+
         // Get total counts
         $totalStats = [
             'total_users' => User::count(),
@@ -270,14 +280,14 @@ class DashboardController extends Controller
 
         // Get increments for the selected period
         $incrementStats = [
-            'new_users' => User::whereBetween('created_at', [$query->getQuery()->wheres[0]['values'][0], $query->getQuery()->wheres[0]['values'][1]])->count(),
-            'new_vehicles' => Vehicle::whereBetween('created_at', [$query->getQuery()->wheres[0]['values'][0], $query->getQuery()->wheres[0]['values'][1]])->count(),
-            'new_loading_clients' => Client::whereHas('loadingTransactions', function($q) use ($query) {
-                $q->whereBetween('loading_date', [$query->getQuery()->wheres[0]['values'][0], $query->getQuery()->wheres[0]['values'][1]]);
-            })->where('created_at', '>=', $query->getQuery()->wheres[0]['values'][0])->count(),
-            'new_unloading_clients' => Client::whereHas('unloadingTransactions', function($q) use ($query) {
-                $q->whereBetween('loading_date', [$query->getQuery()->wheres[0]['values'][0], $query->getQuery()->wheres[0]['values'][1]]);
-            })->where('created_at', '>=', $query->getQuery()->wheres[0]['values'][0])->count(),
+            'new_users' => User::whereBetween('created_at', $dateRange)->count(),
+            'new_vehicles' => Vehicle::whereBetween('created_at', $dateRange)->count(),
+            'new_loading_clients' => Client::whereHas('loadingTransactions', function($q) use ($dateRange) {
+                $q->whereBetween('loading_date', $dateRange);
+            })->where('created_at', '>=', $dateRange[0])->count(),
+            'new_unloading_clients' => Client::whereHas('unloadingTransactions', function($q) use ($dateRange) {
+                $q->whereBetween('loading_date', $dateRange);
+            })->where('created_at', '>=', $dateRange[0])->count(),
             'new_transactions' => $query->count(),
         ];
 
