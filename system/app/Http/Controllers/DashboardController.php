@@ -41,7 +41,8 @@ class DashboardController extends Controller
                     // Top resources
                     'top_vehicles' => $this->getTopVehicles($query),
                     'top_drivers' => $this->getTopDrivers($query),
-                    'products_by_quantity' => $this->getProductsByQuantity($query),
+                    'products_by_value' => $this->getProductsByValue($query),
+                    'products_by_quantity' => $this->getProductsByUnloadingQuantity($query),
                     
                     // Client analytics
                     'loading_points_by_quantity' => $this->getLoadingPointsByQuantity($query),
@@ -60,8 +61,7 @@ class DashboardController extends Controller
         });
     }
 
-    private function getTopVehicles($query)
-    {
+    private function getTopVehicles($query){
         // Clone the query to avoid modifying the original
         $vehicleQuery = clone $query;
         
@@ -85,8 +85,7 @@ class DashboardController extends Controller
             });
     }
 
-    private function getTopDrivers($query)
-    {
+    private function getTopDrivers($query){
         // Clone the query to avoid modifying the original
         $driverQuery = clone $query;
         
@@ -112,12 +111,41 @@ class DashboardController extends Controller
             });
     }
 
-    private function getProductsByQuantity($query)
-    {
+    private function getProductsByValue($query) {
         // Clone the query to avoid modifying the original
         $productQuery = clone $query;
         
-        // Fix: Group by product_id
+        return $productQuery->select(
+                'product_id',
+                DB::raw('COUNT(*) as transaction_count'),
+                DB::raw('SUM(loading_quantity) as total_loading_quantity'),
+                DB::raw('SUM(unloading_quantity) as total_unloading_quantity'),
+                DB::raw('SUM(unloading_rate * unloading_quantity) as total_value'),
+                DB::raw('AVG(transport_expense) as avg_expense')
+            )
+            ->with('product:id,name')
+            ->whereNotNull('product_id')
+            ->whereNotNull('unloading_rate')
+            ->whereNotNull('unloading_quantity')
+            ->groupBy('product_id')
+            ->orderByDesc(DB::raw('SUM(unloading_rate * unloading_quantity)'))
+            ->get()
+            ->map(function($item) {
+                return [
+                    'product' => $item->product,
+                    'transaction_count' => $item->transaction_count,
+                    'total_loading_quantity' => $item->total_loading_quantity,
+                    'total_unloading_quantity' => $item->total_unloading_quantity,
+                    'total_value' => round($item->total_value, 2),
+                    'average_expense' => round($item->avg_expense, 2)
+                ];
+            });
+    }
+    
+    private function getProductsByUnloadingQuantity($query) {
+        // Clone the query to avoid modifying the original
+        $productQuery = clone $query;
+        
         return $productQuery->select(
                 'product_id',
                 DB::raw('COUNT(*) as transaction_count'),
@@ -127,9 +155,9 @@ class DashboardController extends Controller
             )
             ->with('product:id,name')
             ->whereNotNull('product_id')
-            ->groupBy('product_id')  // Fix: Only group by product_id
-            ->orderByDesc(DB::raw('GREATEST(SUM(loading_quantity), SUM(unloading_quantity))'))
-            ->limit(5)
+            ->whereNotNull('unloading_quantity')
+            ->groupBy('product_id')
+            ->orderByDesc(DB::raw('SUM(unloading_quantity)'))
             ->get()
             ->map(function($item) {
                 return [
@@ -142,8 +170,7 @@ class DashboardController extends Controller
             });
     }
 
-    private function getLoadingPointsByQuantity($query)
-    {
+    private function getLoadingPointsByQuantity($query) {
         // Clone the query to avoid modifying the original
         $loadingQuery = clone $query;
         
@@ -166,8 +193,7 @@ class DashboardController extends Controller
             });
     }
 
-    private function getUnloadingPointsByQuantity($query)
-    {
+    private function getUnloadingPointsByQuantity($query){
         // Clone the query to avoid modifying the original
         $unloadingQuery = clone $query;
         
@@ -190,8 +216,7 @@ class DashboardController extends Controller
             });
     }
 
-    private function getLoadingPointsByPrice($query)
-    {
+    private function getLoadingPointsByPrice($query){
         // Clone the query to avoid modifying the original
         $loadingPriceQuery = clone $query;
         
@@ -214,8 +239,7 @@ class DashboardController extends Controller
             });
     }
 
-    private function getUnloadingPointsByPrice($query)
-    {
+    private function getUnloadingPointsByPrice($query){
         // Clone the query to avoid modifying the original
         $unloadingPriceQuery = clone $query;
         
@@ -238,8 +262,7 @@ class DashboardController extends Controller
             });
     }
 
-    private function getSummaryStats($query)
-    {
+    private function getSummaryStats($query){
         // Clone the query to avoid modifying the original
         $summaryQuery = clone $query;
         
@@ -254,8 +277,7 @@ class DashboardController extends Controller
         ];
     }
 
-    private function getTransactionTypeStats($query)
-    {
+    private function getTransactionTypeStats($query){
         // Clone the query to avoid modifying the original
         $typeQuery = clone $query;
         
@@ -275,8 +297,7 @@ class DashboardController extends Controller
             });
     }
 
-    private function getDailyTransactionStats($query)
-    {
+    private function getDailyTransactionStats($query){
         // Clone the query to avoid modifying the original
         $dailyQuery = clone $query;
         
