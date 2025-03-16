@@ -69,6 +69,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/search-transactions/{page?}/{offset?}', [TransactionController::class,'search']);
     route::post('/export-transactions', [TransactionController::class,'export']);
 
+    Route::get('/dashboard-analytics', [App\Http\Controllers\DashboardController::class,'getAnalytics']);
+
     
 });
 
