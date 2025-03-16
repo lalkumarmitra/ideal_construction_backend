@@ -69,22 +69,25 @@ class DashboardController extends Controller
             });
     }
 
-    private function getTopDrivers($query){
+    private function getTopDrivers($query)
+    {
         return $query->select(
                 'loading_driver_id',
                 DB::raw('COUNT(*) as transaction_count'),
+                DB::raw('SUM(transport_expense) as total_expense'),
                 DB::raw('AVG(transport_expense) as avg_expense')
             )
             ->with('loadingDriver:id,name')
             ->whereNotNull('loading_driver_id')
             ->groupBy('loading_driver_id')
-            ->orderByDesc('avg_expense')
+            ->orderByDesc(DB::raw('AVG(transport_expense)'))
             ->limit(5)
             ->get()
             ->map(function($item) {
                 return [
                     'driver' => $item->loadingDriver,
                     'transaction_count' => $item->transaction_count,
+                    'total_expense' => round($item->total_expense, 2),
                     'average_expense' => round($item->avg_expense, 2)
                 ];
             });
