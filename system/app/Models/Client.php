@@ -36,4 +36,10 @@ class Client extends Model
     public function transactions():HasMany {
         return $this->hasMany(Transaction::class,'loading_point_id','id');
     }
+    public function loadingTransactions():HasMany {
+        return $this->hasMany(Transaction::class,'loading_point_id','id');
+    }
+    public function unloadingTransactions():HasMany {
+        return $this->hasMany(Transaction::class,'unloading_point_id','id');
+    }
 }
