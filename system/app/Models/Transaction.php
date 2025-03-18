@@ -29,6 +29,7 @@ class Transaction extends Model
     ];
     protected $fillable = [
         "product_id",
+        "unit",
         "loading_point_id",
         "loading_vehicle_id",
         "loading_date",
