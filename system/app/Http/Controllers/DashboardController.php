@@ -44,16 +44,16 @@ class DashboardController extends Controller
                     'products_by_value' => $this->getProductsByValue($query),
                     'products_by_quantity' => $this->getProductsByUnloadingQuantity($query),
                     
+                    // Route analytics
+                    'expensive_routes' => $this->getExpensiveRoutes($query),
+                    'high_quantity_routes' => $this->getHighQuantityRoutes($query),
+                    'high_value_routes' => $this->getHighValueRoutes($query),
+                    
                     // Client analytics
                     'loading_points_by_quantity' => $this->getLoadingPointsByQuantity($query),
                     'unloading_points_by_quantity' => $this->getUnloadingPointsByQuantity($query),
                     'loading_points_by_price' => $this->getLoadingPointsByPrice($query),
                     'unloading_points_by_price' => $this->getUnloadingPointsByPrice($query),
-
-                    'most_expensive_route' => $this->getExpensiveRoutes($query),
-                    'least_expensive_route' => $this->getCheapestRoutes($query),    
-                    'highest_quantity_route'=> $this->getHighQuantityRoutes($query),
-                    'lowest_quantity_route'=> $this->getLowQuantityRoutes($query),
                     
                     // Additional analytics
                     'summary' => $this->getSummaryStats($query),
@@ -461,6 +461,7 @@ class DashboardController extends Controller
                 ];
             });
     }
+
     private function getCheapestRoutes($query) {
         // Clone the query to avoid modifying the original
         $routeQuery = clone $query;
@@ -519,6 +520,7 @@ class DashboardController extends Controller
                 ];
             });
     }
+    
     private function getLowQuantityRoutes($query) {
         // Clone the query to avoid modifying the original
         $routeQuery = clone $query;
@@ -545,6 +547,37 @@ class DashboardController extends Controller
                     'transaction_count' => $item->transaction_count,
                     'total_quantity' => round($item->total_quantity, 2),
                     'average_quantity' => round($item->avg_quantity, 2)
+                ];
+            });
+    }
+
+    private function getHighValueRoutes($query) {
+        // Clone the query to avoid modifying the original
+        $routeQuery = clone $query;
+        
+        return $routeQuery->select(
+                'loading_point_id',
+                'unloading_point_id',
+                DB::raw('COUNT(*) as transaction_count'),
+                DB::raw('SUM(unloading_rate * unloading_quantity) as total_value'),
+                DB::raw('AVG(unloading_rate * unloading_quantity) as avg_value')
+            )
+            ->with(['loadingPoint:id,name', 'unloadingPoint:id,name'])
+            ->whereNotNull('loading_point_id')
+            ->whereNotNull('unloading_point_id')
+            ->whereNotNull('unloading_rate')
+            ->whereNotNull('unloading_quantity')
+            ->groupBy('loading_point_id', 'unloading_point_id')
+            ->orderByDesc(DB::raw('SUM(unloading_rate * unloading_quantity)'))
+            ->limit(5)
+            ->get()
+            ->map(function($item) {
+                return [
+                    'loading_point' => $item->loadingPoint->name,
+                    'unloading_point' => $item->unloadingPoint->name,
+                    'transaction_count' => $item->transaction_count,
+                    'total_value' => round($item->total_value, 2),
+                    'average_value' => round($item->avg_value, 2)
                 ];
             });
     }

@@ -15,6 +15,18 @@ class Transaction extends Model
         self::TYPE_NORMAL,
         self::TYPE_RETURN
     ];
+    public const UNIT_MT = 'mt';
+    public const UNIT_TON = 'ton';
+    public const UNIT_CFT = 'cft';
+    public const UNIT_KG = 'kg';
+    public const UNIT_OTHER = 'other';
+    public const UNIT_LIST = [
+        self::UNIT_MT,
+        self::UNIT_TON,
+        self::UNIT_CFT,
+        self::UNIT_KG,
+        self::UNIT_OTHER
+    ];
     protected $fillable = [
         "product_id",
         "loading_point_id",

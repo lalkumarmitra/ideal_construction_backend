@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Transaction;
 
+use App\Models\Transaction;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 
@@ -42,6 +43,8 @@ class CreateTransactionRequest extends FormRequest
             "transport_expense"=>'nullable|numeric',
             "loading_driver_id"=>'nullable|numeric|exists:users,id',
             "unloading_driver_id"=>'nullable|numeric|exists:users,id',
+
+            "unit" => 'nullable|string|in:'.implode(',',Transaction::UNIT_LIST)
         ];
     }
 }

@@ -30,6 +30,7 @@ class TransactionController extends Controller
             try{
                 $transaction = Transaction::create([
                     "product_id"=>$product->id,
+                    "unit"=>$request->unit,
                     "loading_point_id"=>$loading_point->id,
                     "loading_vehicle_id"=>$loading_vehicle->id,
                     "loading_date"=>$request->loading_date ?? date('Y-m-d'),
@@ -49,6 +50,7 @@ class TransactionController extends Controller
                     "unloading_driver_id"=>$request->unloading_driver_id,
                     "recorder_id" => Auth::user()->id,
                     "updater_id" => Auth::user()->id,
+
                 ]);
                 if($product) $product->increment('frequency_of_use');
                 if($loading_point) $loading_point->increment('frequency_of_use');
@@ -92,6 +94,7 @@ class TransactionController extends Controller
     
                 $transaction->update([
                     "product_id" => $product?->id ?? $transaction->product_id,
+                    "unit"  => $request->unit ?? $transaction->unit,
                     "loading_point_id" => $loading_point?->id ?? $transaction->loading_point_id,
                     "loading_vehicle_id" => $loading_vehicle?->id ?? $transaction->loading_vehicle_id,
                     "loading_date" => $request->loading_date ?? $transaction->loading_date,
