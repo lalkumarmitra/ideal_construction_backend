@@ -33,7 +33,7 @@ class User extends Authenticatable
     ];
     
     protected $casts = [
-        'password' => 'hashed',
+        'password' => 'hashed', 
         'dob' => 'date',
     ];
     protected $hidden = ['password'];

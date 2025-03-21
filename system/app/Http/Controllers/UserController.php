@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Http\Requests\User\CreateNewUserRequest;
 use App\Http\Requests\User\UpdatePasswordRequest;
+use App\Http\Requests\User\UserDetailsRequest;
+use App\Models\Transaction;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
@@ -87,13 +89,43 @@ class UserController extends Controller
             ];
         });
     }
-    public function details($id) {
-        return $this->tryCatchWrapper(function()use($id){
-            if(!$user = User::find($id)) throw new Exception('User not found with ID : '.$id,404);
-            if(Auth::user()->role->priority > 2 && $user->id !== Auth::user()->id) throw new Exception('Unauthorized Request', 403);
+    public function details(UserDetailsRequest $request, $id) {
+        return $this->tryCatchWrapper(function() use($request, $id) {
+            if (!$user = User::find($id)) throw new Exception('User not found with ID : '.$id, 404);
+            if (Auth::user()->role->priority > 2 && $user->id !== Auth::user()->id) throw new Exception('Unauthorized Request', 403);
+        
+            $baseQuery = Transaction::where(function($query) use ($id) {
+                $query->where('loading_driver_id', $id)->orWhere('unloading_driver_id', $id);
+            });
+            if ($request->filled('from_date') && $request->filled('to_date')) {
+                $baseQuery->whereBetween('loading_date', [$request->from_date, $request->to_date]);
+            }
+            $totalsQuery = clone $baseQuery;
+            $totalTransactions = $totalsQuery->count();
+            $totalExpense = $totalsQuery->sum('transport_expense');
+            $totalUnloadedQuantity = $totalsQuery->sum('unloading_quantity');
+            $totalPrice = $totalsQuery->selectRaw('SUM(unloading_quantity * unloading_rate) as total_price')->value('total_price') ?? 0;
+            
+            $perPage = $request->offset ?? 10;
+            $page = $request->page ?? 1;
+            $paginatedTransactions = $baseQuery->with(['product', 'loadingPoint', 'unloadingPoint'])->paginate($perPage, ['*'], 'page', $page);
+            
             return [
-                'message'=>'User details Fetched Successfully',
-                'data'=>['user' => $user->load(['role'])]
+                'message' => 'User details Fetched Successfully',
+                'data' => [
+                    'user' => $user->load(['role']),
+                    'transactions' => $paginatedTransactions,
+                    'total_transactions' => $totalTransactions,
+                    'total_expense' => $totalExpense,
+                    'total_unloaded_quantity' => $totalUnloadedQuantity,
+                    'total_price' => $totalPrice,
+                    'pagination' => [
+                        'current_page' => $paginatedTransactions->currentPage(),
+                        'per_page' => $paginatedTransactions->perPage(),
+                        'total' => $paginatedTransactions->total(),
+                        'last_page' => $paginatedTransactions->lastPage(),
+                    ]
+                ]
             ];
         });
     }

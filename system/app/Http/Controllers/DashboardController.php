@@ -28,8 +28,7 @@ class DashboardController extends Controller
             ]);
 
             // Create base query
-            $query = Transaction::query()
-                ->whereBetween('loading_date', [$validated['from_date'], $validated['to_date']]);
+            $query = Transaction::query()->whereBetween('loading_date', [$validated['from_date'], $validated['to_date']]);
 
             // Get all analytics data
             return [
@@ -462,34 +461,7 @@ class DashboardController extends Controller
             });
     }
 
-    private function getCheapestRoutes($query) {
-        // Clone the query to avoid modifying the original
-        $routeQuery = clone $query;
-        
-        return $routeQuery->select(
-                'loading_point_id',
-                'unloading_point_id',
-                DB::raw('COUNT(*) as transaction_count'),
-                DB::raw('AVG(transport_expense) as avg_expense'),
-                DB::raw('SUM(transport_expense) as total_expense')
-            )
-            ->with(['loadingPoint:id,name', 'unloadingPoint:id,name'])
-            ->whereNotNull('loading_point_id')
-            ->whereNotNull('unloading_point_id')
-            ->groupBy('loading_point_id', 'unloading_point_id')
-            ->orderBy('avg_expense')
-            ->limit(5)
-            ->get()
-            ->map(function($item) {
-                return [
-                    'loading_point' => $item->loadingPoint->name,
-                    'unloading_point' => $item->unloadingPoint->name,
-                    'transaction_count' => $item->transaction_count,
-                    'average_expense' => round($item->avg_expense, 2),
-                    'total_expense' => round($item->total_expense, 2)
-                ];
-            });
-    }
+    
 
     private function getHighQuantityRoutes($query) {
         // Clone the query to avoid modifying the original
@@ -521,35 +493,7 @@ class DashboardController extends Controller
             });
     }
     
-    private function getLowQuantityRoutes($query) {
-        // Clone the query to avoid modifying the original
-        $routeQuery = clone $query;
-        
-        return $routeQuery->select(
-                'loading_point_id',
-                'unloading_point_id',
-                DB::raw('COUNT(*) as transaction_count'),
-                DB::raw('SUM(unloading_quantity) as total_quantity'),
-                DB::raw('AVG(unloading_quantity) as avg_quantity')
-            )
-            ->with(['loadingPoint:id,name', 'unloadingPoint:id,name'])
-            ->whereNotNull('loading_point_id')
-            ->whereNotNull('unloading_point_id')
-            ->whereNotNull('unloading_quantity')
-            ->groupBy('loading_point_id', 'unloading_point_id')
-            ->orderBy('total_quantity')
-            ->limit(5)
-            ->get()
-            ->map(function($item) {
-                return [
-                    'loading_point' => $item->loadingPoint->name,
-                    'unloading_point' => $item->unloadingPoint->name,
-                    'transaction_count' => $item->transaction_count,
-                    'total_quantity' => round($item->total_quantity, 2),
-                    'average_quantity' => round($item->avg_quantity, 2)
-                ];
-            });
-    }
+    
 
     private function getHighValueRoutes($query) {
         // Clone the query to avoid modifying the original
@@ -578,6 +522,64 @@ class DashboardController extends Controller
                     'transaction_count' => $item->transaction_count,
                     'total_value' => round($item->total_value, 2),
                     'average_value' => round($item->avg_value, 2)
+                ];
+            });
+    }
+
+    private function getCheapestRoutes($query) {
+        // Clone the query to avoid modifying the original
+        $routeQuery = clone $query;
+        
+        return $routeQuery->select(
+                'loading_point_id',
+                'unloading_point_id',
+                DB::raw('COUNT(*) as transaction_count'),
+                DB::raw('AVG(transport_expense) as avg_expense'),
+                DB::raw('SUM(transport_expense) as total_expense')
+            )
+            ->with(['loadingPoint:id,name', 'unloadingPoint:id,name'])
+            ->whereNotNull('loading_point_id')
+            ->whereNotNull('unloading_point_id')
+            ->groupBy('loading_point_id', 'unloading_point_id')
+            ->orderBy('avg_expense')
+            ->limit(5)
+            ->get()
+            ->map(function($item) {
+                return [
+                    'loading_point' => $item->loadingPoint->name,
+                    'unloading_point' => $item->unloadingPoint->name,
+                    'transaction_count' => $item->transaction_count,
+                    'average_expense' => round($item->avg_expense, 2),
+                    'total_expense' => round($item->total_expense, 2)
+                ];
+            });
+    }
+    private function getLowQuantityRoutes($query) {
+        // Clone the query to avoid modifying the original
+        $routeQuery = clone $query;
+        
+        return $routeQuery->select(
+                'loading_point_id',
+                'unloading_point_id',
+                DB::raw('COUNT(*) as transaction_count'),
+                DB::raw('SUM(unloading_quantity) as total_quantity'),
+                DB::raw('AVG(unloading_quantity) as avg_quantity')
+            )
+            ->with(['loadingPoint:id,name', 'unloadingPoint:id,name'])
+            ->whereNotNull('loading_point_id')
+            ->whereNotNull('unloading_point_id')
+            ->whereNotNull('unloading_quantity')
+            ->groupBy('loading_point_id', 'unloading_point_id')
+            ->orderBy('total_quantity')
+            ->limit(5)
+            ->get()
+            ->map(function($item) {
+                return [
+                    'loading_point' => $item->loadingPoint->name,
+                    'unloading_point' => $item->unloadingPoint->name,
+                    'transaction_count' => $item->transaction_count,
+                    'total_quantity' => round($item->total_quantity, 2),
+                    'average_quantity' => round($item->avg_quantity, 2)
                 ];
             });
     }
