@@ -79,18 +79,18 @@ class UserController extends Controller
             $query->when($request->filled('role_id'), function($q) use ($request) {
                 $q->where('role_id', $request->role_id);
             });
-            $query->when($request->filled('?search_query'), function($q) use ($request) {
+            $query->when($request->filled('search_query'), function($q) use ($request) {
                 $q->where(function($subQuery) use ($request) {
-                    $subQuery->where('name', 'like', '%' . $request->query('?search_query', '') . '%')
-                             ->orWhere('phone', 'like', '%' . $request->query('?search_query', '') . '%')
-                             ->orWhere('email', 'like', '%' . $request->query('?search_query', '') . '%');
+                    $subQuery->where('name', 'like', '%' . $request->search_query . '%')
+                             ->orWhere('phone', 'like', '%' . $request->search_query . '%')
+                             ->orWhere('email', 'like', '%' . $request->search_query . '%');
                 });
             });
             $users = $query->with('role')->latest()->paginate($offset, ['*'], 'page', $page);
             return [
                 'message' => 'Users Fetched Successfully',
                 'data' => [
-                    'request' => $request->all(),
+                    'request'=>$request->search_query,
                     'users' => $users->items(),
                     'current_page' => $users->currentPage(),
                     'per_page' => $users->perPage(),
