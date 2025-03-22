@@ -90,7 +90,7 @@ class UserController extends Controller
             return [
                 'message' => 'Users Fetched Successfully',
                 'data' => [
-                    'request' => $request->query('search_query', ''),
+                    'request' => $request->query('?search_query', ''),
                     'users' => $users->items(),
                     'current_page' => $users->currentPage(),
                     'per_page' => $users->perPage(),
