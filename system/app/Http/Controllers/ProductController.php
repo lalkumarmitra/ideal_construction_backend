@@ -6,6 +6,7 @@ use App\Http\Requests\Product\StoreNewProductRequest;
 use App\Http\Requests\Product\UpdateProductRequest;
 use App\Models\Product;
 use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -61,9 +62,15 @@ class ProductController extends Controller
     
     
 
-    public function read($page=1,$offset=10){
-        return $this->tryCatchWrapper(function()use($page,$offset){
-            $products = Product::latest()->orderBy('frequency_of_use', 'desc')->paginate($offset, ['*'], 'page', $page);
+    public function read($page=1,$offset=10,Request $request){
+        return $this->tryCatchWrapper(function()use($page,$offset,$request) {
+            $query = Product::query();
+            $query->when($request->filled('search_query'), function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search_query . '%')
+                ->orWhere('unit', 'like', '%' . $request->search_query . '%')
+                ->orWhere('description','like','%'.$request->search_query.'%');
+            });
+            $products = $query->latest()->orderBy('frequency_of_use', 'desc')->paginate($offset, ['*'], 'page', $page);
             return [
                 'message'=>'Products Fetched Successfully',
                 'data'=>[

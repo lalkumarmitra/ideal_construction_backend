@@ -39,9 +39,14 @@ class VehicleController extends Controller
             ];
         });
     }
-    public function read($page=1,$offset=10){
-        return $this->tryCatchWrapper(function()use($page,$offset) {
-            $vehicles = Vehicle::latest()->orderBy('frequency_of_use', 'desc')->paginate($offset, ['*'], 'page', $page);
+    public function read($page=1,$offset=10,Request $request){
+        return $this->tryCatchWrapper(function()use($page,$offset,$request) {
+            $query = Vehicle::query();
+            $query->when($request->filled('search_query'), function($q) use ($request) {
+                $q->where('number', 'like', '%' . $request->search_query . '%')
+                  ->orWhere('type', 'like', '%' . $request->search_query . '%');
+            });
+            $vehicles = $query->latest()->orderBy('frequency_of_use', 'desc')->paginate($offset, ['*'], 'page', $page);
             return [
                 'message'=>'Vehicles Fetched Successfully',
                 'data'=>[

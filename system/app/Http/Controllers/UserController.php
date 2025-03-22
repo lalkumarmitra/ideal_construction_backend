@@ -12,6 +12,7 @@ use App\Http\Requests\User\CreateNewUserRequest;
 use App\Http\Requests\User\UpdatePasswordRequest;
 use App\Http\Requests\User\UserDetailsRequest;
 use App\Models\Transaction;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
@@ -72,14 +73,23 @@ class UserController extends Controller
             }
         });
     }
-    public function read($page=1,$offset=10,$byroleid=null) {
-        return $this->tryCatchWrapper(function()use($page,$offset,$byroleid){
+    public function read(Request $request, $page = 1, $offset = 10) {
+        return $this->tryCatchWrapper(function() use ($request, $page, $offset) {
             $query = User::query();
-            if($byroleid)$query->where('role_id',$byroleid);
+            $query->when($request->filled('role_id'), function($q) use ($request) {
+                $q->where('role_id', $request->role_id);
+            });
+            $query->when($request->filled('search_query'), function($q) use ($request) {
+                $q->where(function($subQuery) use ($request) {
+                    $subQuery->where('name', 'like', '%' . $request->search_query . '%')
+                             ->orWhere('phone', 'like', '%' . $request->search_query . '%')
+                             ->orWhere('email', 'like', '%' . $request->search_query . '%');
+                });
+            });
             $users = $query->with('role')->latest()->paginate($offset, ['*'], 'page', $page);
             return [
-                'message'=>'Users Fetched Successfully',
-                'data'=>[
+                'message' => 'Users Fetched Successfully',
+                'data' => [
                     'users' => $users->items(),
                     'current_page' => $users->currentPage(),
                     'per_page' => $users->perPage(),
@@ -89,6 +99,7 @@ class UserController extends Controller
             ];
         });
     }
+    
     public function details(UserDetailsRequest $request, $id) {
         return $this->tryCatchWrapper(function() use($request, $id) {
             if (!$user = User::find($id)) throw new Exception('User not found with ID : '.$id, 404);

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Client\StoreClientRequest;
 use App\Models\Client;
 use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -60,9 +61,17 @@ class ClientController extends Controller
             }
         });
     }
-    public function read($page=1,$offset=10){
-        return $this->tryCatchWrapper(function()use($page,$offset){
-            $clients = Client::latest()->orderBy('frequency_of_use', 'desc')->paginate($offset, ['*'], 'page', $page);
+    public function read($page=1,$offset=10,Request $request){
+        return $this->tryCatchWrapper(function()use($page,$offset,$request) {
+            $query = Client::query();
+            $query->when($request->filled('search_query'), function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search_query . '%')
+                  ->orWhere('address', 'like', '%' . $request->search_query . '%')
+                  ->orWhere('state', 'like', '%' . $request->search_query . '%')
+                  ->orWhere('pin', 'like', '%' . $request->search_query . '%')
+                  ->orWhere('type', 'like', '%' . $request->search_query . '%');
+            });
+            $clients = $query->latest()->orderBy('frequency_of_use', 'desc')->paginate($offset, ['*'], 'page', $page);
             return [
                 'message'=>'Clients Fetched Successfully',
                 'data'=>[
