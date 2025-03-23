@@ -109,8 +109,9 @@ class UserController extends Controller
             $baseQuery = Transaction::where(function($query) use ($id) {
                 $query->where('loading_driver_id', $id)->orWhere('unloading_driver_id', $id);
             });
-            if ($request->filled('from_date') && $request->filled('to_date')) {
-                $baseQuery->whereBetween('loading_date', [$request->from_date, $request->to_date]);
+            if ($request->filled('from_date') ) {
+                $to_date = ($request->filled('to_date'))?$request->to_date:$request->from_date;
+                $baseQuery->whereBetween('loading_date', [$request->from_date, $to_date]);
             }
             $totalsQuery = clone $baseQuery;
             $totalTransactions = $totalsQuery->count();
