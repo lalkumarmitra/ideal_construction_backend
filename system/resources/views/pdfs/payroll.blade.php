@@ -215,8 +215,8 @@
             <div class="info-section">
                 <div class="section-header">Payroll Period</div>
                 <div class="section-content">
-                    <p style="margin-bottom: 4px" class="label">{{ Carbon\Carbon::parse($startDate)->format('d M Y') }} - {{ Carbon\Carbon::parse($endDate)->format('d M Y') }}</p>
-                    <div class="payment-field">
+                    <p style="margin: 0 0 8px 0 !important;" class="label">{{ Carbon\Carbon::parse($startDate)->format('d M Y') }} - {{ Carbon\Carbon::parse($endDate)->format('d M Y') }}</p>
+                    <div  class="payment-field">
                         <span class="label">Amount:</span>
                         <span class="signature-line"></span>
                     </div>
@@ -249,15 +249,15 @@
                         <td>{{ Carbon\Carbon::parse($transaction['loading_date'])->format('d M Y') }}</td>
                         <td>{{ $transaction['product']['name'] ?? 'N/A' }}</td>
                         <td>{{ $transaction['loadingPoint']['name'] ?? 'N/A' }}  -  {{ $transaction['unloadingPoint']['name'] ?? 'N/A' }}</td>
-                        <td class="text-right uppercase">{{ formatIndianNumber(number_format($transaction['unloading_quantity'], 3)) }} {{ strtoupper($transaction['unit']) }}</td>
-                        <td class="text-right">{{ formatIndianNumber(number_format($transaction['transport_expense'], 2)) }}</td>
+                        <td class="text-right uppercase">{{ formatIndianNumber($transaction['unloading_quantity']) }} {{ strtoupper($transaction['unit']) }}</td>
+                        <td class="text-right">{{ formatIndianNumber($transaction['transport_expense']) }}</td>
                     </tr>
                     @endforeach
                     <tr class="total-row">
                         <td colspan="2">Total</td>
                         <td>#{{ $payrollData['total_transactions'] }} transactions</td>
-                        <td class="text-right">{{ formatIndianNumber(number_format($payrollData['total_unloaded_quantity'], 3)) }} MT</td>
-                        <td class="text-right">RS {{ formatIndianNumber(number_format($payrollData['total_expense'], 2)) }}</td>
+                        <td class="text-right">{{ formatIndianNumber($payrollData['total_unloaded_quantity']) }} MT</td>
+                        <td class="text-right">RS {{ formatIndianNumber($payrollData['total_expense']) }}</td>
                     </tr>
                 </tbody>
             </table>
