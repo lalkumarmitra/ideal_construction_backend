@@ -202,6 +202,7 @@
                     <p><span class="label">Name:</span> {{ $user->name ?? 'N/A' }}</p>
                     <p><span class="label">Phone:</span> {{ $user->phone ?? 'N/A' }}</p>
                     <p><span class="label">Email:</span> {{ $user->email ?? 'N/A' }}</p>
+                    <p><span class="label">Total Transactions:</span> {{ $payrollData['total_transactions'] }}</p>
                 </div>
             </div>
         </div>
