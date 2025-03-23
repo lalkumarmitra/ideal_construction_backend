@@ -122,6 +122,7 @@
             text-align: left;
             padding: 5px 8px;
             font-weight: bold;
+            border-bottom: 1px solid #e2e8f0;
         }
         
         td {
@@ -139,7 +140,7 @@
         }
         td {
             white-space: nowrap;
-            font-size: 14px;
+            font-size: 10px;
         }
         
         /* Payment details */
@@ -241,7 +242,7 @@
                     <tr>
                         <td>{{ Carbon\Carbon::parse($transaction['loading_date'])->format('d M Y') }}</td>
                         <td>{{ $transaction['product']['name'] ?? 'N/A' }}</td>
-                        <td>{{ $transaction['loadingPoint']['name'] ?? 'N/A' }} -> {{ $transaction['unloadingPoint']['name'] ?? 'N/A' }}</td>
+                        <td>{{ $transaction['loadingPoint']['name'] ?? 'N/A' }}  -  {{ $transaction['unloadingPoint']['name'] ?? 'N/A' }}</td>
                         <td>{{ number_format($transaction['unloading_quantity'], 3) }} {{ $transaction['unit'] }}</td>
                         <td>RS {{ number_format($transaction['transport_expense'], 2) }}</td>
                     </tr>
