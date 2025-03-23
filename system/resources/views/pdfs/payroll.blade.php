@@ -139,6 +139,10 @@
             color: white;
             font-weight: bold;
         }
+        td {
+            white-space: nowrap;
+            font-size: 14px;
+        }
         
         /* Payment details */
         .signature-section {
@@ -207,6 +211,14 @@
                 <div class="section-header">Payroll Period</div>
                 <div class="section-content">
                     <p>{{ Carbon\Carbon::parse($startDate)->format('d M Y') }} - {{ Carbon\Carbon::parse($endDate)->format('d M Y') }}</p>
+                    <div class="payment-field">
+                        <span class="label">Amount:</span>
+                        <span class="signature-line"></span>
+                    </div>
+                    <div class="payment-field">
+                        <span class="label">Signature:</span>
+                        <span class="signature-line"></span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -231,7 +243,7 @@
                     <tr>
                         <td>{{ Carbon\Carbon::parse($transaction['loading_date'])->format('d M Y') }}</td>
                         <td>{{ $transaction['product']['name'] ?? 'N/A' }}</td>
-                        <td>{{ $transaction['loadingPoint']['name'] ?? 'N/A' }} → {{ $transaction['unloadingPoint']['name'] ?? 'N/A' }}</td>
+                        <td>{{ $transaction['loadingPoint']['name'] ?? 'N/A' }} -> {{ $transaction['unloadingPoint']['name'] ?? 'N/A' }}</td>
                         <td>{{ number_format($transaction['unloading_quantity'], 3) }} {{ $transaction['unit'] }}</td>
                         <td>RS {{ number_format($transaction['transport_expense'], 2) }}</td>
                     </tr>
@@ -247,20 +259,6 @@
         </div>
     </div>
     
-    <!-- Payment Details -->
-    <div class="info-section">
-        <div class="section-header">Payment Details</div>
-        <div class="section-content">
-            <div class="payment-field">
-                <span class="label">Amount:</span>
-                <span class="signature-line"></span>
-            </div>
-            <div class="payment-field">
-                <span class="label">Signature:</span>
-                <span class="signature-line"></span>
-            </div>
-        </div>
-    </div>
     
     <!-- Footer -->
     <div class="footer">
