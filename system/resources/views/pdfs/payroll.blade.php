@@ -262,7 +262,7 @@
     <!-- Footer -->
     <div class="footer">
         <p>This is an official payment document of Ideal Construction</p>
-        <p>If you have any questions, please contact accounting@idealconstruction.com</p>
+        <p>If you have any questions, please contact +91-7858856423</p>
     </div>
 </body>
 </html>
