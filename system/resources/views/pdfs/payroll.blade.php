@@ -14,8 +14,7 @@
     </style>
 </head>
 <body>
-    <h1>hello there</h1>
-    <!-- <div class="header">
+    <div class="header">
         <h2>Payroll Report</h2>
         <p>Period: {{ Carbon\Carbon::parse($startDate)->format('d M Y') }} - {{ Carbon\Carbon::parse($endDate)->format('d M Y') }}</p>
         
@@ -55,6 +54,6 @@
             </tr>
             @endforeach
         </tbody>
-    </table> -->
+    </table>
 </body>
 </html>
