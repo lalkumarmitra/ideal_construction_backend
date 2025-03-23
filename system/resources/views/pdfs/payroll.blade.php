@@ -141,6 +141,7 @@
         
         .total-row {
             background-color: #2c5282;
+            color: #ffffff;
             font-weight: bold;
         }
         td {
