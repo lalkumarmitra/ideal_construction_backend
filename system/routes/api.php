@@ -70,6 +70,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     route::post('/export-transactions', [TransactionController::class,'export']);
 
     Route::post('/dashboard-analytics', [App\Http\Controllers\DashboardController::class,'getAnalytics']);
+    Route::post('/user-payroll',[App\Http\Controllers\PayrollController::class,'downloadPayroll']);
 
     
 });
