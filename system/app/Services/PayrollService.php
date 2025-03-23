@@ -95,10 +95,11 @@ class PayrollService {
             'loadingPoint:id,name',
             'unloadingPoint:id,name'
         ]);
-        $totalTransactions = $baseQuery->count();
-        $totalExpense = $baseQuery->sum('transport_expense');
-        $totalUnloadedQuantity = $baseQuery->sum('unloading_quantity');
-        $totalPrice = $baseQuery->selectRaw('SUM(unloading_quantity * unloading_rate) as total_price')->value('total_price') ?? 0;
+        $totalsQuery = clone $baseQuery;
+        $totalTransactions = $totalsQuery->count();
+        $totalExpense = $totalsQuery->sum('transport_expense');
+        $totalUnloadedQuantity = $totalsQuery->sum('unloading_quantity');
+        $totalPrice = $totalsQuery->selectRaw('SUM(unloading_quantity * unloading_rate) as total_price')->value('total_price') ?? 0;
         $transactions = $baseQuery->get();
         return [
             'total_transactions' => $totalTransactions,
