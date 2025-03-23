@@ -25,6 +25,7 @@ class PayrollController extends Controller
             return [
                 'message' => 'Payroll generated successfully',
                 'type' => 'download',
+                'file_type' == 'pdf',
                 'data' => $payroll
             ];
         });
