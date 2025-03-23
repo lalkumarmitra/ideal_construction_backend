@@ -118,8 +118,7 @@
         }
         
         th {
-            background-color: #2c5282;
-            color: white;
+            
             text-align: left;
             padding: 5px 8px;
             font-weight: bold;
@@ -136,7 +135,6 @@
         
         .total-row {
             background-color: #2c5282;
-            color: white;
             font-weight: bold;
         }
         td {
