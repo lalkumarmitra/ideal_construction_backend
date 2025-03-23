@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Transaction;
 use App\Models\User;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Support\Facades\Storage;
 use InvalidArgumentException;
 
@@ -42,28 +43,32 @@ class PayrollService {
     
 
     public function generatePayroll() {
-        $payrollData = $this->getPayrollData();
-        if (!$payrollData) {
-            throw new InvalidArgumentException("No payroll data available");
+        try {
+            $payrollData = $this->getPayrollData();
+            if (!$payrollData || empty($payrollData['transactions'])) {
+                throw new InvalidArgumentException("No payroll data available for the selected period");
+            }
+    
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdfs.payroll', [
+                'user' => $this->user,
+                'startDate' => $this->startDate,
+                'endDate' => $this->endDate,
+                'payrollData' => $payrollData
+            ]);
+    
+            $filename = 'payroll_' . $this->user->id . '_' . Carbon::parse($this->startDate)->format('Y_m') . '.pdf';
+            $exportDir = 'public/exports';
+            Storage::makeDirectory($exportDir);
+            $tempPath = Storage::path($exportDir . '/' . $filename);
+            $pdf->save($tempPath);
+    
+            return [
+                'path' => $tempPath,
+                'filename' => $filename
+            ];
+        } catch (\Exception $e) {
+            throw new Exception('Error generating payroll: ' . $e->getMessage());
         }
-
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdfs.payroll', [
-            'user' => $this->user,
-            'startDate' => $this->startDate,
-            'endDate' => $this->endDate,
-            'payrollData' => $payrollData
-        ]);
-
-        $filename = 'payroll_' . $this->user->id . '_' . Carbon::parse($this->startDate)->format('Y_m') . '.pdf';
-        $exportDir = 'public/exports';
-        Storage::makeDirectory($exportDir);
-        $tempPath = Storage::path($exportDir . '/' . $filename);
-        $pdf->save($tempPath);
-
-        return [
-            'path' => $tempPath,
-            'filename' => $filename
-        ];
     }
 
 

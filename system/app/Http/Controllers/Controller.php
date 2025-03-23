@@ -17,7 +17,7 @@ class Controller extends BaseController
     protected function build_response($status, $response, $status_code){
         if(isset($response['type']) && $response['type'] == 'download'){
             $fileData = $response['data'];
-            $contentType = (isset($fileData['file_type']) && $fileData['file_type'] === 'pdf')?'application/pdf':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+            $contentType = (isset($response['file_type']) && $response['file_type'] === 'pdf')?'application/pdf':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
             return response()->download($fileData['path'], $fileData['filename'], ['Content-Type' => $contentType])->deleteFileAfterSend(true);
         }
         $res = array(
