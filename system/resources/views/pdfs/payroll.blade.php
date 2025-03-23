@@ -215,7 +215,7 @@
             <div class="info-section">
                 <div class="section-header">Payroll Period</div>
                 <div class="section-content">
-                    <p class="label">{{ Carbon\Carbon::parse($startDate)->format('d M Y') }} - {{ Carbon\Carbon::parse($endDate)->format('d M Y') }}</p>
+                    <p style="margin-bottom: 4px" class="label">{{ Carbon\Carbon::parse($startDate)->format('d M Y') }} - {{ Carbon\Carbon::parse($endDate)->format('d M Y') }}</p>
                     <div class="payment-field">
                         <span class="label">Amount:</span>
                         <span class="signature-line"></span>
@@ -249,7 +249,7 @@
                         <td>{{ Carbon\Carbon::parse($transaction['loading_date'])->format('d M Y') }}</td>
                         <td>{{ $transaction['product']['name'] ?? 'N/A' }}</td>
                         <td>{{ $transaction['loadingPoint']['name'] ?? 'N/A' }}  -  {{ $transaction['unloadingPoint']['name'] ?? 'N/A' }}</td>
-                        <td class="text-right uppercase">{{ number_format($transaction['unloading_quantity'], 3) }} {{ $transaction['unit'] }}</td>
+                        <td class="text-right uppercase">{{ number_format($transaction['unloading_quantity'], 3) }} {{ strtoupper($transaction['unit']) }}</td>
                         <td class="text-right">RS {{ number_format($transaction['transport_expense'], 2) }}</td>
                     </tr>
                     @endforeach
