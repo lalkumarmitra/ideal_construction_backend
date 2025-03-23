@@ -48,7 +48,7 @@
             <tr>
                 <td>{{ Carbon\Carbon::parse($transaction->loading_date)->format('d M Y') }}</td>
                 <td>{{ $transaction->product->name ?? 'N/A' }}</td>
-                <td>{{ $transaction->loadingPoint->name  ?? 'N/A'}} → {{ $transaction->unloadingPoint->name }}</td>
+                <td>{{ $transaction->loadingPoint->name  ?? 'N/A'}} → {{ $transaction->unloadingPoint->name ?? 'N/A' }}</td>
                 <td>{{ number_format($transaction->unloading_quantity, 2) }} {{ $transaction->unit }}</td>
                 <td>₹{{ number_format($transaction->transport_expense, 2) }}</td>
             </tr>
