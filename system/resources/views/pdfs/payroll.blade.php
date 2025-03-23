@@ -33,7 +33,12 @@
             padding-bottom: 10px;
             margin-bottom: 15px;
         }
-        
+        .text-right {
+            text-align: right;
+        }
+        .uppercase {
+            text-transform: 'uppercase';
+        }
         .logo-container {
             margin-bottom: 10px;
         }
@@ -202,7 +207,7 @@
                     <p><span class="label">Name:</span> {{ $user->name ?? 'N/A' }}</p>
                     <p><span class="label">Phone:</span> {{ $user->phone ?? 'N/A' }}</p>
                     <p><span class="label">Email:</span> {{ $user->email ?? 'N/A' }}</p>
-                    <p><span class="label">Total Transactions:</span> {{ $payrollData['total_transactions'] }}</p>
+                    <p><span class="label">Transactions:</span> {{ $payrollData['total_transactions'] }} Transactions</p>
                 </div>
             </div>
         </div>
@@ -210,7 +215,7 @@
             <div class="info-section">
                 <div class="section-header">Payroll Period</div>
                 <div class="section-content">
-                    <p>{{ Carbon\Carbon::parse($startDate)->format('d M Y') }} - {{ Carbon\Carbon::parse($endDate)->format('d M Y') }}</p>
+                    <p class="label">{{ Carbon\Carbon::parse($startDate)->format('d M Y') }} - {{ Carbon\Carbon::parse($endDate)->format('d M Y') }}</p>
                     <div class="payment-field">
                         <span class="label">Amount:</span>
                         <span class="signature-line"></span>
@@ -244,15 +249,15 @@
                         <td>{{ Carbon\Carbon::parse($transaction['loading_date'])->format('d M Y') }}</td>
                         <td>{{ $transaction['product']['name'] ?? 'N/A' }}</td>
                         <td>{{ $transaction['loadingPoint']['name'] ?? 'N/A' }}  -  {{ $transaction['unloadingPoint']['name'] ?? 'N/A' }}</td>
-                        <td>{{ number_format($transaction['unloading_quantity'], 3) }} {{ $transaction['unit'] }}</td>
-                        <td>RS {{ number_format($transaction['transport_expense'], 2) }}</td>
+                        <td class="text-right uppercase">{{ number_format($transaction['unloading_quantity'], 3) }} {{ $transaction['unit'] }}</td>
+                        <td class="text-right">RS {{ number_format($transaction['transport_expense'], 2) }}</td>
                     </tr>
                     @endforeach
                     <tr class="total-row">
                         <td colspan="2">Total</td>
                         <td>#{{ $payrollData['total_transactions'] }} transactions</td>
-                        <td>{{ number_format($payrollData['total_unloaded_quantity'], 3) }} MT</td>
-                        <td>RS {{ number_format($payrollData['total_expense'], 2) }}</td>
+                        <td class="text-right">{{ number_format($payrollData['total_unloaded_quantity'], 3) }} MT</td>
+                        <td class="text-right">RS {{ number_format($payrollData['total_expense'], 2) }}</td>
                     </tr>
                 </tbody>
             </table>

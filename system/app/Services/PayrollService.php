@@ -100,7 +100,7 @@ class PayrollService {
         $totalExpense = $totalsQuery->sum('transport_expense');
         $totalUnloadedQuantity = $totalsQuery->sum('unloading_quantity');
         $totalPrice = $totalsQuery->selectRaw('SUM(unloading_quantity * unloading_rate) as total_price')->value('total_price') ?? 0;
-        $transactions = $baseQuery->get();
+        $transactions = $baseQuery->latest('loading_date')->get();
         return [
             'total_transactions' => $totalTransactions,
             'total_expense' => $totalExpense,
