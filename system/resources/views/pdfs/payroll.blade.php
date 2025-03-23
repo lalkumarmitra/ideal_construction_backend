@@ -4,62 +4,68 @@
     <meta charset="utf-8">
     <title>Payroll Invoice - Ideal Construction</title>
     <style>
-        /* Base styles that work well with PDF generators */
+        /* Base styles optimized for PDF generation */
         body {
             font-family: 'Helvetica', 'Arial', sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 15px;
             color: #333;
-            line-height: 1.4;
-            position: relative;
+            line-height: 1.3;
+            font-size: 11pt;
         }
         
-        /* Watermark */
+        /* Watermark - adjusted for better PDF rendering */
         .watermark {
-            position: absolute;
+            position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             opacity: 0.05;
             z-index: -1;
-            width: 70%;
+            width: 60%;
+            height: auto;
         }
         
-        /* Header styles */
+        /* Header styles - reduced sizes for PDF */
         .header {
             text-align: center;
-            border-bottom: 3px solid #2c5282;
-            padding-bottom: 15px;
-            margin-bottom: 25px;
+            border-bottom: 2px solid #2c5282;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .logo-container {
+            margin-bottom: 10px;
         }
         
         .company-name {
-            font-size: 28px;
+            font-size: 18pt;
             font-weight: bold;
             color: #2c5282;
-            margin: 10px 0;
+            margin: 5px 0;
         }
         
         .document-title {
-            font-size: 22px;
+            font-size: 14pt;
             font-weight: bold;
             background-color: #edf2f7;
-            padding: 8px;
-            margin: 15px auto;
-            width: 50%;
+            padding: 5px;
+            margin: 10px auto;
+            width: 40%;
             text-align: center;
-            border-radius: 5px;
+            border-radius: 3px;
         }
         
         .invoice-details {
-            margin: 15px 0;
+            margin: 10px 0;
+            font-size: 10pt;
         }
         
-        /* Information sections */
+        /* Information sections - simplified for PDF */
         .info-section {
             border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            border-radius: 5px;
+            margin-bottom: 15px;
             overflow: hidden;
         }
         
@@ -67,24 +73,30 @@
             background-color: #2c5282;
             color: white;
             font-weight: bold;
-            padding: 8px 15px;
-            font-size: 16px;
+            padding: 5px 10px;
+            font-size: 11pt;
         }
         
         .section-content {
-            padding: 15px;
+            padding: 8px 10px;
             background-color: #f8fafc;
         }
         
         /* Driver info and period styles */
         .info-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 25px;
+            width: 100%;
+            display: table;
+            table-layout: fixed;
+            margin-bottom: 15px;
         }
         
         .info-column {
-            width: 48%;
+            display: table-cell;
+            width: 49%;
+        }
+        
+        .info-column:first-child {
+            padding-right: 10px;
         }
         
         .label {
@@ -92,23 +104,29 @@
             margin-right: 5px;
         }
         
-        /* Table styles */
+        /* Smaller spacing for info blocks */
+        .section-content p {
+            margin: 5px 0;
+        }
+        
+        /* Table styles - optimized for PDF */
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+            font-size: 9pt;
         }
         
         th {
             background-color: #2c5282;
             color: white;
             text-align: left;
-            padding: 10px;
+            padding: 5px 8px;
             font-weight: bold;
         }
         
         td {
-            padding: 8px 10px;
+            padding: 4px 8px;
             border-bottom: 1px solid #e2e8f0;
         }
         
@@ -123,37 +141,47 @@
         }
         
         /* Payment details */
+        .signature-section {
+            margin-top: 5px;
+        }
+        
         .signature-line {
             border-bottom: 1px solid #000;
             display: inline-block;
-            width: 250px;
+            width: 200px;
             margin-left: 10px;
         }
         
         .payment-field {
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
         
         /* Footer */
         .footer {
-            margin-top: 40px;
+            margin-top: 20px;
             text-align: center;
-            font-size: 12px;
+            font-size: 9pt;
             color: #718096;
             border-top: 1px solid #e2e8f0;
-            padding-top: 15px;
+            padding-top: 10px;
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
         }
     </style>
 </head>
 <body>
-    <!-- Watermark -->
+    <!-- Watermark - Using base64 for reliable embedding -->
     <div class="watermark">
-        <img src="https://api.idealconstruction.online/assets/logo.png" alt="" width="100%">
+        <img src="{{ public_path('assets/logo.png') }}" alt="">
     </div>
     
     <!-- Header -->
     <div class="header">
-        <img src="https://api.idealconstruction.online/assets/logo.png" alt="Ideal Construction Logo" width="150">
+        <div class="logo-container">
+            <img src="{{ public_path('assets/logo.png') }}" alt="Ideal Construction Logo" width="100">
+        </div>
         <div class="company-name">Ideal Construction</div>
         <div class="document-title">PAYROLL INVOICE</div>
         <div class="invoice-details">
@@ -191,11 +219,11 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Date</th>
-                        <th>Product</th>
-                        <th>Route</th>
-                        <th>Quantity</th>
-                        <th>Expense</th>
+                        <th width="15%">Date</th>
+                        <th width="20%">Product</th>
+                        <th width="30%">Route</th>
+                        <th width="15%">Quantity</th>
+                        <th width="20%">Expense</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -205,7 +233,7 @@
                         <td>{{ $transaction['product']['name'] ?? 'N/A' }}</td>
                         <td>{{ $transaction['loadingPoint']['name'] ?? 'N/A' }} → {{ $transaction['unloadingPoint']['name'] ?? 'N/A' }}</td>
                         <td>{{ number_format($transaction['unloading_quantity'], 3) }} {{ $transaction['unit'] }}</td>
-                        <td>RS {{ number_format($transaction['transport_expense'], 3) }}</td>
+                        <td>RS {{ number_format($transaction['transport_expense'], 2) }}</td>
                     </tr>
                     @endforeach
                     <tr class="total-row">
