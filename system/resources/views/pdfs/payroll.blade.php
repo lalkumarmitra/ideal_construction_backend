@@ -19,9 +19,9 @@
         <p>Period: {{ Carbon\Carbon::parse($startDate)->format('d M Y') }} - {{ Carbon\Carbon::parse($endDate)->format('d M Y') }}</p>
         
         <h3>Driver Details</h3>
-        <p>Name: {{ $user->name }}</p>
-        <p>Phone: {{ $user->phone }}</p>
-        <p>Email: {{ $user->email }}</p>
+        <p>Name: {{ $user->name ?? 'no name'}}</p>
+        <p>Phone: {{ $user->phone ?? 'no phone'}}</p>
+        <p>Email: {{ $user->email ?? 'no email'}}</p>
     </div>
 
     <div class="summary">
@@ -47,8 +47,8 @@
             @foreach($payrollData['transactions'] as $transaction)
             <tr>
                 <td>{{ Carbon\Carbon::parse($transaction->loading_date)->format('d M Y') }}</td>
-                <td>{{ $transaction->product->name }}</td>
-                <td>{{ $transaction->loadingPoint->name }} → {{ $transaction->unloadingPoint->name }}</td>
+                <td>{{ $transaction->product->name ?? 'N/A' }}</td>
+                <td>{{ $transaction->loadingPoint->name  ?? 'N/A'}} → {{ $transaction->unloadingPoint->name }}</td>
                 <td>{{ number_format($transaction->unloading_quantity, 2) }} {{ $transaction->unit }}</td>
                 <td>₹{{ number_format($transaction->transport_expense, 2) }}</td>
             </tr>
