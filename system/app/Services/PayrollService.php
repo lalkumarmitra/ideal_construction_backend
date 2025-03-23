@@ -85,12 +85,16 @@ class PayrollService {
         $user = $this->user;
         $startDate = $this->startDate ?? Carbon::now()->startOfMonth()->format('Y-m-d');
         $endDate = $this->endDate ?? Carbon::now()->endOfMonth()->format('Y-m-d');
+        
         $baseQuery = Transaction::where(function($query) use($user) {
             $query->where('loading_driver_id', $user->id)->orWhere('unloading_driver_id', $user->id);
         });
         $baseQuery->whereBetween('loading_date', [$startDate, $endDate]);
-        $baseQuery->with(['product', 'loadingPoint', 'unloadingPoint']);
-        
+        $baseQuery->with([
+            'product:id,name',
+            'loadingPoint:id,name',
+            'unloadingPoint:id,name'
+        ]);
         $totalTransactions = $baseQuery->count();
         $totalExpense = $baseQuery->sum('transport_expense');
         $totalUnloadedQuantity = $baseQuery->sum('unloading_quantity');
@@ -101,8 +105,23 @@ class PayrollService {
             'total_expense' => $totalExpense,
             'total_unloaded_quantity' => $totalUnloadedQuantity,
             'total_price' => $totalPrice,
-            'transactions' => $transactions
+            'transactions' => $transactions->map(function($transaction) {
+                return [
+                    'loading_date' => $transaction->loading_date,
+                    'product' => [
+                        'name' => $transaction->product->name ?? 'N/A'
+                    ],
+                    'loadingPoint' => [
+                        'name' => $transaction->loadingPoint->name ?? 'N/A'
+                    ],
+                    'unloadingPoint' => [
+                        'name' => $transaction->unloadingPoint->name ?? 'N/A'
+                    ],
+                    'unloading_quantity' => $transaction->unloading_quantity,
+                    'unit' => $transaction->unit ?? '',
+                    'transport_expense' => $transaction->transport_expense
+                ];
+            })
         ];
-
     }
 }

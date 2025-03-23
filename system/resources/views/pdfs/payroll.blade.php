@@ -19,17 +19,17 @@
         <p>Period: {{ Carbon\Carbon::parse($startDate)->format('d M Y') }} - {{ Carbon\Carbon::parse($endDate)->format('d M Y') }}</p>
         
         <h3>Driver Details</h3>
-        <p>Name: {{ $user->name ?? 'no name'}}</p>
-        <p>Phone: {{ $user->phone ?? 'no phone'}}</p>
-        <p>Email: {{ $user->email ?? 'no email'}}</p>
+        <p>Name: {{ $user->name ?? 'N/A'}}</p>
+        <p>Phone: {{ $user->phone ?? 'N/A'}}</p>
+        <p>Email: {{ $user->email ?? 'N/A'}}</p>
     </div>
 
     <div class="summary">
         <h3>Summary</h3>
         <p>Total Transactions: {{ $payrollData['total_transactions'] }}</p>
-        <p>Total Expense: ₹{{ number_format($payrollData['total_expense'], 2) }}</p>
-        <p>Total Quantity: {{ number_format($payrollData['total_unloaded_quantity'], 2) }}</p>
-        <p>Total Value: ₹{{ number_format($payrollData['total_price'], 2) }}</p>
+        <p>Total Expense: RS {{ number_format($payrollData['total_expense'], 2) }}</p>
+        <p>Total Quantity: {{ number_format($payrollData['total_unloaded_quantity'], 2) }} MT</p>
+        <p>Total Value: RS {{ number_format($payrollData['total_price'], 2) }}</p>
     </div>
 
     <h3>Transaction Details</h3>
@@ -50,7 +50,7 @@
                 <td>{{ $transaction->product->name ?? 'N/A' }}</td>
                 <td>{{ $transaction->loadingPoint->name  ?? 'N/A'}} → {{ $transaction->unloadingPoint->name ?? 'N/A' }}</td>
                 <td>{{ number_format($transaction->unloading_quantity, 2) }} {{ $transaction->unit }}</td>
-                <td>₹{{ number_format($transaction->transport_expense, 2) }}</td>
+                <td>RS {{ number_format($transaction->transport_expense, 2) }}</td>
             </tr>
             @endforeach
         </tbody>
